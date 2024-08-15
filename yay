@@ -20,9 +20,9 @@
       }
 
       .menu-bar {
-        position: fixed;
+        position: absolute;
         top: 40px;
-        left: 0;
+        left: 20px;
         right: 0;
         display: flex;
         justify-content: center;
@@ -55,14 +55,39 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 350px;
+        width: 400px;
         height: 80vh;
         overflow-y: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
         align-items: center;
+        padding: 20px;
+        z-index: 1000;
+      }
+      .kawaii-border-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 998; /* Just below the content-section */
+        width: 1000px; /* Fixed width */
+        height: 100vh; /* Match the content-section height */
+        display: flex;
       }
 
+      .kawaii-border {
+        position: absolute;
+        font-size: 14px;
+        line-height: 1;
+        white-space: pre-wrap;
+        overflow: hidden;
+        color: black;
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+      }
       .content-section::-webkit-scrollbar {
         display: none;
       }
@@ -73,17 +98,59 @@
 
       .home-content {
         text-align: center;
+        color: rgba(
+          255,
+          94,
+          164,
+          1
+        ); /* Solid color, we'll apply opacity to child elements */
+      }
+      .home-content .typed {
+        color: rgba(255, 94, 164, 0.8);
+        text-shadow: 0 0 10px rgba(255, 253, 228, 0.5);
+      }
+
+      .typewriter-line {
+        visibility: hidden;
+        overflow: hidden;
+        white-space: nowrap;
+        margin: 0;
+        display: inline-block;
+        opacity: 0.8; /* Apply opacity here */
+        text-shadow: 0 0 10px rgba(255, 253, 228, 0.5); /* Creamy white glow */
+      }
+
+      .typewriter-line::after {
+        content: "✧";
+        opacity: 0.8;
+        animation: blink 0.7s infinite;
+        color: inherit;
+        text-shadow: inherit;
+      }
+
+      .typewriter-line.completed {
+        opacity: 0.8;
+        text-shadow: 0 0 10px rgba(255, 253, 228, 0.5);
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
       }
 
       .home-image {
-        width: 350px;
+        width: 400px;
         height: 200px;
         margin-top: 20px;
         object-fit: contain;
         border-radius: 20px;
         border-style: hidden;
-        justify-content: left;
-        flex-direction: row;
+        justify-content: center;
       }
 
       @import url("https://fonts.google.com/specimen/Texturina?preview.text=emery&query=texturina&classification=Display&vfonly=true");
@@ -130,7 +197,7 @@
 
       .collage-image {
         width: 100%;
-        max-width: 350px;
+        max-width: 450px;
         height: auto;
         object-fit: cover;
         animation: collageShake 1s infinite ease-in-out;
@@ -177,7 +244,7 @@
 
       .justified-paragraph span {
         display: inline-block;
-        width: 100%;
+        width: 350px;
         text-align: justify;
         text-align-last: justify;
       }
@@ -224,7 +291,10 @@
     <div id="content">
       <section id="home" class="content-section active">
         <div class="home-content">
-          <!-- Content will be dynamically added here -->
+          <p>
+            <span class="typewriter-line"></span><br />
+            <span class="typewriter-line"></span>
+          </p>
         </div>
       </section>
       <section id="about" class="content-section">
@@ -692,6 +762,9 @@
           hideSphere();
         } else if (isGoingHome) {
           showSphere();
+          if (!homeAnimationComplete) {
+            animateTypewriter();
+          }
         }
 
         // Update browser history
@@ -741,6 +814,137 @@
           applyShake(item, 0.5);
         });
       }
+
+      let homeAnimationComplete = false;
+
+      function typeWriter(element, text, duration) {
+        return new Promise((resolve) => {
+          let i = 0;
+          const interval = duration / text.length;
+          element.style.visibility = "visible";
+          element.textContent = ""; // Clear existing content
+          const timer = setInterval(() => {
+            if (i < text.length) {
+              element.textContent = text.substring(0, i + 1);
+              i++;
+            } else {
+              clearInterval(timer);
+              element.classList.add("completed");
+              resolve();
+            }
+          }, interval);
+        });
+      }
+
+      async function animateTypewriter() {
+        if (homeAnimationComplete) return;
+
+        const lines = document.querySelectorAll(".typewriter-line");
+        await typeWriter(
+          lines[0],
+          "close your eyes and take my hand. . .",
+          3000
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1-second pause
+        await typeWriter(lines[1], "let's stroll about my world", 3000);
+
+        homeAnimationComplete = true;
+      }
+      const kawaiiBorderChars =
+        "<3,♥,♡,*,☆,★,⋆,✿,❀,✾,❁,-,–,―,+,✚,✛,○,●,◎,◉,□,■,▢,▣,◇,◆,♢,♦,~,˜,≈,≋,☆彡,ミ☆,･,∙,⋅".split(
+          ","
+        );
+
+      function createKawaiiBorder() {
+        const container = document.createElement("div");
+        container.className = "kawaii-border-container";
+        document.body.appendChild(container);
+
+        const border = document.createElement("div");
+        border.className = "kawaii-border";
+        container.appendChild(border);
+
+        function updateBorder() {
+          const containerWidth = container.clientWidth - 40; // Account for padding
+          const containerHeight = container.clientHeight - 40; // Account for padding
+
+          const charWidth = 14; // Approximate width of a character
+          const charHeight = 14; // Approximate height of a character
+
+          const leftRight = Math.floor(containerHeight / charHeight);
+          const topBottom = Math.floor(containerWidth / charWidth);
+
+          let borderChars = "";
+
+          // Top row
+          for (let i = 0; i < topBottom; i++) {
+            borderChars +=
+              kawaiiBorderChars[
+                Math.floor(Math.random() * kawaiiBorderChars.length)
+              ];
+          }
+          borderChars += "\n";
+
+          // Middle rows
+          for (let i = 0; i < leftRight - 2; i++) {
+            borderChars +=
+              kawaiiBorderChars[
+                Math.floor(Math.random() * kawaiiBorderChars.length)
+              ];
+            for (let j = 0; j < topBottom - 2; j++) {
+              borderChars += " ";
+            }
+            borderChars +=
+              kawaiiBorderChars[
+                Math.floor(Math.random() * kawaiiBorderChars.length)
+              ] + "\n";
+          }
+
+          // Bottom row
+          for (let i = 0; i < topBottom; i++) {
+            borderChars +=
+              kawaiiBorderChars[
+                Math.floor(Math.random() * kawaiiBorderChars.length)
+              ];
+          }
+
+          // Split the borderChars into lines
+          const lines = borderChars.split("\n");
+
+          // Insert the right column into the middle section of each line
+          for (let i = 1; i < lines.length - 1; i++) {
+            const rightColumnChar =
+              kawaiiBorderChars[
+                Math.floor(Math.random() * kawaiiBorderChars.length)
+              ];
+            lines[i] = lines[i].slice(0, -1) + rightColumnChar; // Change this line to insert the right column character at the right position
+          }
+
+          // Join the lines back into a single string
+          border.textContent = lines.join("\n");
+        }
+
+        function twinkle() {
+          const chars = border.textContent.split("");
+          for (let i = 0; i < chars.length; i++) {
+            if (chars[i] !== " " && chars[i] !== "\n" && Math.random() < 0.1) {
+              chars[i] =
+                kawaiiBorderChars[
+                  Math.floor(Math.random() * kawaiiBorderChars.length)
+                ];
+            }
+          }
+          border.textContent = chars.join("");
+
+          border.style.opacity = 0.7 + Math.random() * 0.3;
+
+          setTimeout(twinkle, Math.random() * 2000 + 1000);
+        }
+
+        updateBorder();
+        window.addEventListener("resize", updateBorder);
+        twinkle();
+      }
       // Initialize
       document.addEventListener("DOMContentLoaded", () => {
         createAura("aura-container");
@@ -749,6 +953,8 @@
         handleInitialLoad();
         applyMenuShake();
         applyCollageShake();
+        animateTypewriter();
+        createKawaiiBorder();
       });
 
       console.log("All scripts loaded");

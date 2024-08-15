@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mre.info</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12pt;
+            color: black;
+            text-transform: lowercase;
+            overflow: hidden;
+        }
+
+        .menu-bar {
+            position: fixed;
+            top: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            background-color: transparent;
+            z-index: 1000;
+        }
+
+        .menu-item {
+            position: relative;
+            margin: 0 10px;
+            cursor: pointer;
+         
+        }
+
+        .menu-item.active {
+            color: #0000EE; /* link blue */
+            text-decoration: underline;
+        }
+
+    
+
+        #content {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .content-section {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            align-items:center;
+        }
+
+        .content-section::-webkit-scrollbar {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .home-content {
+            text-align: center;
+        }
+
+        .home-image {
+            width: 350px;
+            height: 200px;
+            margin-top: 20px;
+            object-fit: contain;
+            border-radius: 20px;
+            border-style: hidden;
+            justify-content: left;
+            flex-direction: row;
+        }
+
+
+
+        @import url('https://fonts.google.com/specimen/Texturina?preview.text=emery&query=texturina&classification=Display&vfonly=true');
+
+        .stylized-mre {
+            
+            font-size: 12pt;
+            font-weight: 700;
+            display: inline-block;
+            position: relative;
+            color: #000;
+        }
+
+        .stylized-mre::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.8),
+                transparent
+            );
+            animation: shine 2s linear infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .print-collage-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .collage-image {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            object-fit: cover;
+            animation: collageShake 1s infinite ease-in-out;
+            opacity:0.8;
+
+        }
+
+        .collage-image:hover {
+            opacity: 0.6;
+            animation: none;
+        }
+
+        @keyframes collageShake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(0.3px, 0.3px) rotate(0.1deg); }
+            50% { transform: translate(0, -0.3px) rotate(-0.1deg); }
+            75% { transform: translate(-0.3px, 0) rotate(0.1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        
+
+        #scene-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .justified-paragraph {
+            text-align: center;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .justified-paragraph span {
+            display: inline-block;
+            width: 100%;
+            text-align: justify;
+            text-align-last: justify;
+        }
+
+        .justified-paragraph span.centered {
+            text-align: center;
+            text-align-last: center;
+        }
+
+        @media (min-width: 600px) {
+            .justified-paragraph {
+                max-width: 80%;
+            }
+        }
+
+        .digital-content {
+            text-align: center;
+        }
+
+
+        .contact-content {
+            text-align: center;
+        }
+        .aura-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.85; /* Adjust for desired intensity */
+        }
+
+    
+
+        
+    </style>
+</head>
+<body>
+    <div id="scene-container"></div>
+    <div id="aura-container" class="aura-container"></div>
+    <nav class="menu-bar">
+        <div class="menu-item active" data-section="home">home</div>
+        <div class="menu-item" data-section="about">about</div>
+        <div class="menu-item" data-section="print">
+            print
+        </div>
+        <div class="menu-item" data-section="digital">
+            digital
+        </div>
+        <div class="menu-item" data-section="contact">contact</div>
+    </nav>
+    <div id="content">
+        <section id="home" class="content-section active">
+            <div class="home-content">
+                <!-- Content will be dynamically added here -->
+            </div>
+        </section>
+        <section id="about" class="content-section">
+            <div class="about-content">
+                <p class="justified-paragraph">
+                    <span><span class="stylized-mre">willow wisp</span> is a filipino-american artist</span><br>
+                    <span>capturing the tender moments that linger</span><br>
+                    <span>between presence and passage</span><br>
+                    <span>through their work in audio, video, & photo.</span><br>
+                    <span>they find charm and depth in life's flux,</span><br>
+                    <span>bridging digital realms and physical experiences</span><br>
+                    <span>to create pieces that resonate</span><br>
+                    <span>with quiet introspection.</span><br><br>
+                    <span>based in brooklyn, ny</span><br><br><br>
+                    <span class="centered">✧</span>
+                </p>
+                <img src="IMG_9748.gif" alt="me" class="home-image">
+            </div>
+        </section>
+        <section id="print" class="content-section">
+            <div class="print-content">
+            </div>
+        </section>
+        <section id="print-collage" class="content-section">
+                <img src="image1.jpg" alt="Collage 1" class="collage-image">
+                <img src="image2.jpg" alt="Collage 2" class="collage-image">
+                <img src="image3.jpg" alt="Collage 3" class="collage-image">
+                <img src="image4.png" alt="Collage 4" class="collage-image">
+        </section>
+        <section id="digital" class="content-section">
+            <div class="digital-content">
+                <p>Digital content goes here.</p>
+            </div>
+        </section>
+        <section id="contact" class="content-section">
+            <div class="contact-content">
+                <p> you may reach me at<br></p> <p class= "justified-paragraph"><span>willow (dot) wisp @ proton (dot) me</span><br><span>@ sticky _ ipad</span><br></p><p>or begin your message below</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Audio context and variables
+        let audioContext;
+        let masterGain;
+        let isPlaying = false;
+
+        const chordProgression = [
+            [196.00, 293.66, 392.00, 493.88], // G
+            [164.81, 246.94, 329.63, 415.30], // E
+            [220.00, 329.63, 440.00, 523.25], // A
+            [261.63, 329.63, 392.00, 523.25], // C
+            [185.00, 293.66, 392.00, 493.88], // F#
+            [196.00, 293.66, 392.00, 466.16], // G/B
+            [261.63, 329.63, 392.00, 523.25], // C
+            [233.08, 349.23, 466.16, 587.33], // Bb
+            [220.00, 329.63, 440.00, 554.37], // A/C#
+            [196.00, 293.66, 392.00, 587.33], // G/D
+            [220.00, 277.18, 329.63, 440.00], // Asus4
+            [174.61, 261.63, 349.23, 523.25], // F
+            [220.00, 277.18, 349.23, 440.00], // A
+            [196.00, 293.66, 392.00, 587.33], // G/D
+            [196.00, 293.66, 392.00, 493.88], // G
+            [174.61, 261.63, 349.23, 440.00], // F
+        ];
+
+        let currentChordIndex = 0;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioContext.createGain();
+                masterGain.connect(audioContext.destination);
+            }
+        }
+
+        function playChord() {
+            if (!audioContext) initAudio();
+            if (isPlaying) return;
+            isPlaying = true;
+
+            const chord = chordProgression[currentChordIndex];
+            const now = audioContext.currentTime;
+            const bpm = 120;
+            const sixteenthNoteDuration = 60 / bpm / 4;
+            const chordDuration = sixteenthNoteDuration * 8;
+            const noteSpacing = sixteenthNoteDuration / 2;
+
+            const stereoPanner = audioContext.createStereoPanner();
+            const chordGain = audioContext.createGain();
+            stereoPanner.connect(chordGain);
+            chordGain.connect(masterGain);
+
+            const delay = audioContext.createDelay(1.0);
+            delay.delayTime.setValueAtTime(0.3, now);
+            const feedback = audioContext.createGain();
+            feedback.gain.setValueAtTime(0.4, now);
+
+            delay.connect(feedback);
+            feedback.connect(delay);
+            delay.connect(chordGain);
+
+            let noteIndex = 0;
+            for (let time = 0; time < chordDuration; time += noteSpacing) {
+                playNote(chord[noteIndex], now + time, noteSpacing * 1.5, stereoPanner, delay);
+                noteIndex = (noteIndex + 1) % chord.length;
+            }
+
+            chordGain.gain.setValueAtTime(1, now);
+            chordGain.gain.linearRampToValueAtTime(0, now + chordDuration);
+
+            setTimeout(() => {
+                stereoPanner.disconnect();
+                chordGain.disconnect();
+                delay.disconnect();
+                feedback.disconnect();
+                isPlaying = false;
+            }, chordDuration * 1000 + 100);
+
+            currentChordIndex = (currentChordIndex + 1) % chordProgression.length;
+
+        
+        }
+
+        function createAura(containerId) {
+            const container = document.getElementById(containerId);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            container.appendChild(canvas);
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            let time = 0;
+            const colors = [
+                { r: 200, g: 255, b: 200 }, // Soft green
+                { r: 255, g: 200, b: 220 }, // Soft pink
+                { r: 230, g: 230, b: 255 }  // Soft lavender
+            ];
+
+            function lerp(a, b, t) {
+                return a + (b - a) * t;
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const baseRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+                // Create multiple layers of gradients for a smoother edge effect
+                for (let layer = 0; layer < 3; layer++) {
+                    const layerOffset = Math.sin(time * 2 + layer * Math.PI * 2 / 3) * 20;
+                    const radius = baseRadius + layerOffset;
+
+                    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+
+                    for (let i = 0; i < colors.length; i++) {
+                        const t = (time / 10 + i / colors.length) % 1; // Slowed down color transition
+                        const nextIndex = (i + 1) % colors.length;
+                        const r = Math.floor(lerp(colors[i].r, colors[nextIndex].r, t));
+                        const g = Math.floor(lerp(colors[i].g, colors[nextIndex].g, t));
+                        const b = Math.floor(lerp(colors[i].b, colors[nextIndex].b, t));
+                        const alpha = (1 - (i / colors.length) * 0.6) * (1 - layer * 0.2);
+                        gradient.addColorStop(i / (colors.length - 1), `rgba(${r}, ${g}, ${b}, ${alpha})`);
+                    }
+
+                    ctx.globalCompositeOperation = layer === 0 ? 'source-over' : 'screen';
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                time += 0.00004; // Significantly slowed down
+                if (time > 10) time -= 10;
+
+                requestAnimationFrame(draw);
+            }
+
+            draw();
+
+            // Add very subtle pulsing effect
+            let pulseTime = 0;
+            function animate() {
+                pulseTime += 0.05;
+                const scale = 1 + Math.sin(pulseTime) * 0.005; // Even more subtle pulsing effect
+
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(scale, scale);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
+                draw();
+
+                ctx.restore();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+        
+        function playNote(frequency, startTime, duration, stereoPanner, delay) {
+          if (!audioContext) initAudio();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          const notePanner = audioContext.createStereoPanner();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(notePanner);
+          notePanner.connect(stereoPanner);
+          gainNode.connect(delay);
+
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(frequency, startTime);
+
+          notePanner.pan.setValueAtTime(Math.random() * 2 - 1, startTime);
+
+          gainNode.gain.setValueAtTime(0, startTime);
+          gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
+          gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+
+          oscillator.start(startTime);
+          oscillator.stop(startTime + duration);
+
+          setTimeout(() => {
+            oscillator.disconnect();
+            gainNode.disconnect();
+            notePanner.disconnect();
+          }, (startTime + duration - audioContext.currentTime) * 1000 + 100);
+        }
+        // Three.js setup
+        let scene, camera, renderer;
+        let centralSphere, leftSphere, rightSphere;
+        let mouseX = 0, mouseY = 0;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('scene-container').appendChild(renderer.domElement);
+
+            createCentralSphere();
+            setupEventListeners();
+
+          camera.position.z = 5;
+          animate();
+        }
+        
+        function createCentralSphere() {
+          if (centralSphere) {
+            scene.remove(centralSphere);
+            centralSphere = null;
+          }
+
+          const geometry = new THREE.SphereGeometry(1, 64, 64);
+          const material = new THREE.PointsMaterial({
+            size: 0.03,
+            vertexColors: true,
+            transparent: true,
+            sizeAttenuation: true,
+          });
+
+          centralSphere = new THREE.Points(geometry, material);
+          updateSphereColors(centralSphere);
+          centralSphere.position.set(0, 0, 0);
+          centralSphere.name = 'centralSphere';
+          scene.add(centralSphere);
+
+          // Make the sphere interactive
+          centralSphere.callback = playChord;
+        }
+
+        function updateSphereColors(sphere) {
+            const colors = [];
+            const positions = sphere.geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                const color = new THREE.Color();
+                color.setHSL(Math.random(), 0.5 + Math.random() * 0.5, 0.7 + Math.random() * 0.3);
+                colors.push(color.r, color.g, color.b);
+            }
+            sphere.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (centralSphere) {
+                centralSphere.rotation.x += 0.001;
+                centralSphere.rotation.y += 0.002;
+                centralSphere.position.x = mouseX * 0.05;
+                centralSphere.position.y = mouseY * 0.05;
+            }
+
+
+            renderer.render(scene, camera);
+        }
+
+        function updateCentralSpherePosition() {
+            if (centralSphere) {
+                centralSphere.position.x = mouseX * 0.05;
+                centralSphere.position.y = mouseY * 0.05;
+            }
+        }
+
+        
+        function updateSpherePositions(sphere, baseX) {
+            const positions = sphere.geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i] += (Math.random() - 0.5) * 0.01;
+                positions[i+1] += (Math.random() - 0.5) * 0.01;
+                positions[i+2] += (Math.random() - 0.5) * 0.01;
+            }
+            sphere.geometry.attributes.position.needsUpdate = true;
+
+            sphere.position.x = baseX + (mouseX * 0.05);
+            sphere.position.y = mouseY * 0.05;
+        }
+
+        
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function setupEventListeners() {
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('resize', onWindowResize);
+            const menuBar = document.querySelector('.menu-bar');
+            menuBar.addEventListener('click', handleMenuClick);
+        }
+
+
+        function handleMenuClick(e) {
+            if (!audioContext) initAudio();
+          const target = e.target.closest('.menu-item, .submenu-item');
+          if (!target) return;
+
+          e.preventDefault();
+          const sectionId = target.dataset.section.replace('/', '-');
+          navigateTo(sectionId);
+
+          // Play both a note and a chord when a menu item is clicked
+          const frequency = 440 * Math.pow(2, Math.random() * 2 - 1); // Random frequency between 220Hz and 880Hz
+          const now = audioContext.currentTime;
+
+          // Create necessary audio nodes
+          const stereoPanner = audioContext.createStereoPanner();
+          const delay = audioContext.createDelay(1.0);
+          delay.delayTime.setValueAtTime(0.3, now);
+
+          // Play a single note
+          playNote(frequency, now, 0.2, stereoPanner, delay);
+
+          // Play a chord
+          playChord();
+        }
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onDocumentClick() {
+            playChord();
+        }
+
+        function applyShake(element, intensity = 0.5) {
+            let x = 0;
+            let y = 0;
+
+            function updateShake() {
+                x += (Math.random() - 0.5) * intensity;
+                y += (Math.random() - 0.5) * intensity;
+
+                x *= 0.9;
+                y *= 0.9;
+
+                element.style.transform = `translate(${x}px, ${y}px)`;
+                requestAnimationFrame(updateShake);
+            }
+
+            updateShake();
+        }
+
+       
+
+        // Navigation code
+        const menuItems = document.querySelectorAll('.menu-item, .submenu-item');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        function navigateTo(sectionId) {
+          if (sectionId === 'print') sectionId = 'print-collage';
+
+          const targetSection = document.getElementById(sectionId);
+          if (!targetSection) return;
+
+          const isLeavingHome = document.getElementById('home').classList.contains('active');
+          const isGoingHome = sectionId === 'home';
+
+          // Hide all content sections
+          document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+          });
+
+          // Show the target section
+          targetSection.classList.add('active');
+
+          // Update active state in the menu
+          document.querySelectorAll('.menu-item, .submenu-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.section === sectionId || 
+              (item.dataset.section === 'print' && (sectionId === 'print-collage' || sectionId === 'print-zine')));
+          });
+
+          // Handle sphere visibility
+          if (isLeavingHome && !isGoingHome) {
+            hideSphere();
+          } else if (isGoingHome) {
+            showSphere();
+          }
+
+          // Update browser history
+          history.pushState(null, '', `/${sectionId}`);
+
+          playChord();
+        }
+
+        // Placeholder functions for showing and hiding the sphere
+        function showSphere() {
+          if (centralSphere) {
+            centralSphere.visible = true;
+          }
+        }
+
+        function hideSphere() {
+          if (centralSphere) {
+            centralSphere.visible = false;
+          }
+        }
+
+        function applyCollageShake() {
+            const collageImages = document.querySelectorAll('.collage-image');
+            collageImages.forEach(image => {
+                applyShake(image, 0.3);
+
+                // Add hover effect
+                image.addEventListener('mouseenter', () => {
+                    image.style.opacity = '0.8';
+                    image.style.transform = 'none';
+                });
+
+                image.addEventListener('mouseleave', () => {
+                    image.style.opacity = '1';
+                    applyShake(image, 0.3);
+                });
+            });
+        }
+        function handleInitialLoad() {
+            const path = window.location.pathname.slice(1) || 'home';
+            const sectionId = path.replace('/', '-');
+            navigateTo(sectionId);
+        }
+        function applyMenuShake() {
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                applyShake(item, 0.5);
+            });
+        }
+                     // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createAura('aura-container');
+            initAudio();
+            init();
+            handleInitialLoad();
+            applyMenuShake();
+            applyCollageShake();
+        });
+
+
+                     console.log('All scripts loaded');
+           
+
+            document.querySelectorAll('.trigger').forEach(trigger => { // This block was missing a closing brace
+                trigger.addEventListener('mouseenter', () => {
+                    const audio = new Audio('click-sound.mp3'); // Update with the correct path
+                    audio.play();
+                    trigger.style.transform = "scale(1.2)";
+                });
+
+                trigger.addEventListener('mouseleave', () => {
+                    trigger.style.transform = "scale(1)";
+                });
+
+                trigger.addEventListener('click', () => {
+                    const section = trigger.dataset.section; // Ensure each trigger has a data-section attribute
+                    navigate(section); 
+                });
+            }); 
+
+                </script>
+</body>
+</html>
+   

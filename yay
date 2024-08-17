@@ -21,13 +21,23 @@
 
       .menu-bar {
         position: absolute;
-        top: 40px;
-        left: 20px;
+        top: 70px;
+        left: 0px;
         right: 0;
         display: flex;
         justify-content: center;
         background-color: transparent;
         z-index: 1000;
+        opacity: 0;
+        transition: opacity 1s ease-in;
+      }
+
+      .fade-in {
+        opacity: 1;
+      }
+
+      .fade-out {
+        opacity: 0;
       }
 
       .menu-item {
@@ -56,7 +66,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         width: 400px;
-        height: 80vh;
+        height: 75vh;
         overflow-y: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -64,36 +74,26 @@
         padding: 20px;
         z-index: 1000;
       }
-      .kawaii-border-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        z-index: 998; /* Just below the content-section */
-        width: 1000px; /* Fixed width */
-        height: 100vh; /* Match the content-section height */
-        display: flex;
-      }
 
-      .kawaii-border {
-        position: absolute;
-        font-size: 14px;
-        line-height: 1;
-        white-space: pre-wrap;
-        overflow: hidden;
-        color: black;
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-        box-sizing: border-box;
-      }
       .content-section::-webkit-scrollbar {
         display: none;
       }
 
       .content-section.active {
         display: block;
+      }
+
+      .border-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 1200px; /* Fixed width */
+        height: 850px; /* Fixed height */
+        border: 2px solid black;
+        pointer-events: none;
+        z-index: 1001;
+        border-style: hidden;
       }
 
       .home-content {
@@ -141,6 +141,10 @@
         50% {
           opacity: 0;
         }
+      }
+
+      .typewriter-container {
+        transition: opacity 1s ease-in-out;
       }
 
       .home-image {
@@ -281,6 +285,7 @@
   <body>
     <div id="scene-container"></div>
     <div id="aura-container" class="aura-container"></div>
+    <div class="border-container"></div>
     <nav class="menu-bar">
       <div class="menu-item active" data-section="home">home</div>
       <div class="menu-item" data-section="about">about</div>
@@ -291,10 +296,12 @@
     <div id="content">
       <section id="home" class="content-section active">
         <div class="home-content">
-          <p>
-            <span class="typewriter-line"></span><br />
-            <span class="typewriter-line"></span>
-          </p>
+          <div class="typewriter-container">
+            <p>
+              <span class="typewriter-line"></span><br />
+              <span class="typewriter-line"></span>
+            </p>
+          </div>
         </div>
       </section>
       <section id="about" class="content-section">
@@ -669,6 +676,50 @@
         const menuBar = document.querySelector(".menu-bar");
         menuBar.addEventListener("click", handleMenuClick);
       }
+      const kawaiiBorderChars =
+        "<3,♥,♡,*,☆,★,⋆,✿,❀,✾,❁,-,–,―,+,✚,✛,○,●,◎,◉,□,■,▢,▣,◇,◆,♢,♦,~,˜,≈,≋,☆彡,ミ☆,･,∙,⋅".split(
+          ","
+        );
+
+      function generateKawaiiBorder() {
+        const borderContainer = document.querySelector(".border-container");
+        const kawaiiElement = document.createElement("div");
+        kawaiiElement.className = "kawaii-border";
+        borderContainer.innerHTML = ""; // Clear existing content
+        borderContainer.appendChild(kawaiiElement);
+
+        const containerWidth = 600; // Fixed width
+        const containerHeight = 600; // Fixed height
+        const charSize = 16; // Adjust this value to change the density of characters
+
+        let borderChars = "";
+
+        // Top and bottom rows
+        for (let i = 0; i < containerWidth; i += charSize) {
+          borderChars += `<span style="position:absolute;left:${i}px;top:0">${getRandomChar()}</span>`;
+          borderChars += `<span style="position:absolute;left:${i}px;bottom:0">${getRandomChar()}</span>`;
+        }
+
+        // Left and right columns
+        for (let i = charSize; i < containerHeight - charSize; i += charSize) {
+          borderChars += `<span style="position:absolute;left:0;top:${i}px">${getRandomChar()}</span>`;
+          borderChars += `<span style="position:absolute;right:0;top:${i}px">${getRandomChar()}</span>`;
+        }
+
+        kawaiiElement.innerHTML = borderChars;
+      }
+
+      function getRandomChar() {
+        return kawaiiBorderChars[
+          Math.floor(Math.random() * kawaiiBorderChars.length)
+        ];
+      }
+
+      // Generate border on load
+      window.addEventListener("load", generateKawaiiBorder);
+
+      // Optional: Regenerate border every few seconds for a dynamic effect
+      setInterval(generateKawaiiBorder, 5000);
 
       function handleMenuClick(e) {
         if (!audioContext) initAudio();
@@ -840,112 +891,35 @@
         if (homeAnimationComplete) return;
 
         const lines = document.querySelectorAll(".typewriter-line");
+        const menuBar = document.querySelector(".menu-bar");
+        const typewriterContainer = document.querySelector(
+          ".typewriter-container"
+        );
+
+        // Ensure menu is hidden initially
+        menuBar.classList.remove("fade-in");
+
         await typeWriter(
           lines[0],
           "close your eyes and take my hand. . .",
           3000
         );
         await new Promise((resolve) => setTimeout(resolve, 1000)); // 1-second pause
-        await typeWriter(lines[1], "let's stroll about my world", 3000);
+        await typeWriter(lines[1], "step into my garden ✿✿✿", 3000);
+
+        // Fade out typewriter text
+        typewriterContainer.style.transition = "opacity 1s ease-out";
+        typewriterContainer.style.opacity = "0";
+
+        // Wait for typewriter fade-out to complete, then wait an additional 1 second
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Fade in menu
+        menuBar.classList.add("fade-in");
 
         homeAnimationComplete = true;
       }
-      const kawaiiBorderChars =
-        "<3,♥,♡,*,☆,★,⋆,✿,❀,✾,❁,-,–,―,+,✚,✛,○,●,◎,◉,□,■,▢,▣,◇,◆,♢,♦,~,˜,≈,≋,☆彡,ミ☆,･,∙,⋅".split(
-          ","
-        );
-
-      function createKawaiiBorder() {
-        const container = document.createElement("div");
-        container.className = "kawaii-border-container";
-        document.body.appendChild(container);
-
-        const border = document.createElement("div");
-        border.className = "kawaii-border";
-        container.appendChild(border);
-
-        function updateBorder() {
-          const containerWidth = container.clientWidth - 40; // Account for padding
-          const containerHeight = container.clientHeight - 40; // Account for padding
-
-          const charWidth = 14; // Approximate width of a character
-          const charHeight = 14; // Approximate height of a character
-
-          const leftRight = Math.floor(containerHeight / charHeight);
-          const topBottom = Math.floor(containerWidth / charWidth);
-
-          let borderChars = "";
-
-          // Top row
-          for (let i = 0; i < topBottom; i++) {
-            borderChars +=
-              kawaiiBorderChars[
-                Math.floor(Math.random() * kawaiiBorderChars.length)
-              ];
-          }
-          borderChars += "\n";
-
-          // Middle rows
-          for (let i = 0; i < leftRight - 2; i++) {
-            borderChars +=
-              kawaiiBorderChars[
-                Math.floor(Math.random() * kawaiiBorderChars.length)
-              ];
-            for (let j = 0; j < topBottom - 2; j++) {
-              borderChars += " ";
-            }
-            borderChars +=
-              kawaiiBorderChars[
-                Math.floor(Math.random() * kawaiiBorderChars.length)
-              ] + "\n";
-          }
-
-          // Bottom row
-          for (let i = 0; i < topBottom; i++) {
-            borderChars +=
-              kawaiiBorderChars[
-                Math.floor(Math.random() * kawaiiBorderChars.length)
-              ];
-          }
-
-          // Split the borderChars into lines
-          const lines = borderChars.split("\n");
-
-          // Insert the right column into the middle section of each line
-          for (let i = 1; i < lines.length - 1; i++) {
-            const rightColumnChar =
-              kawaiiBorderChars[
-                Math.floor(Math.random() * kawaiiBorderChars.length)
-              ];
-            lines[i] = lines[i].slice(0, -1) + rightColumnChar; // Change this line to insert the right column character at the right position
-          }
-
-          // Join the lines back into a single string
-          border.textContent = lines.join("\n");
-        }
-
-        function twinkle() {
-          const chars = border.textContent.split("");
-          for (let i = 0; i < chars.length; i++) {
-            if (chars[i] !== " " && chars[i] !== "\n" && Math.random() < 0.1) {
-              chars[i] =
-                kawaiiBorderChars[
-                  Math.floor(Math.random() * kawaiiBorderChars.length)
-                ];
-            }
-          }
-          border.textContent = chars.join("");
-
-          border.style.opacity = 0.7 + Math.random() * 0.3;
-
-          setTimeout(twinkle, Math.random() * 2000 + 1000);
-        }
-
-        updateBorder();
-        window.addEventListener("resize", updateBorder);
-        twinkle();
-      }
-      // Initialize
+      // Modify the existing event listener
       document.addEventListener("DOMContentLoaded", () => {
         createAura("aura-container");
         initAudio();

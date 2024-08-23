@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mre.info</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jacquarda+Bastarda+9+Charted&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body,
       html {
@@ -12,24 +17,223 @@
         padding: 0;
         width: 100%;
         height: 100%;
-        font-family: Helvetica, Arial, sans-serif;
+        font-family: "Jacquarda Bastarda 9 Charted", cursive;
         font-size: 12pt;
         color: black;
         text-transform: lowercase;
         overflow: hidden;
       }
-
-      .menu-bar {
-        position: absolute;
-        top: 70px;
+      .ipod-container {
+        position: relative;
         left: 0px;
-        right: 0;
+        width: 305px;
+        height: 500px;
+        background-image: url("ipod2.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      .audio-player {
+        position: absolute;
+        top: 135px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 105px;
+        height: 82px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .player-content {
+        position: relative;
+        width: 100%;
+        height: 60px;
+      }
+
+      .album-art {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 42px;
+        object-fit: cover;
+        border-radius: 3px;
+      }
+
+      .song-title {
+        position: absolute;
+        top: 45px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #333;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: #ddd;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 100%;
+        background-color: #007aff;
+        width: 0;
+        transition: width 0.1s linear;
+      }
+
+      .time-display {
+        display: flex;
+        justify-content: space-between;
+        color: #333;
+        font-size: 6px;
+        margin-top: 1px;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .button {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
         display: flex;
         justify-content: center;
+        align-items: center;
+      }
+
+      .play-button {
+        top: 210px;
+        left: 50%;
+        opacity: 0;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+
+      .rewind-button {
+        top: 170px;
+        left: 0px;
+        opacity: 0;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 255, 0.8);
+      }
+
+      .forward-button {
+        top: 170px;
+        right: 0px;
+        opacity: 0;
+        transform: translateY(-50%);
+        background-color: rgba(255, 0, 0, 0.8);
+      }
+
+      .song-list-button {
+        top: 115px;
+        right: 40px;
+        opacity: 0;
+      }
+
+      .song-list {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        overflow-y: auto;
+        display: none;
+      }
+
+      .song-list ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .song-list li {
+        padding: 5px;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 8pt;
+        cursor: pointer;
+      }
+
+      .song-list li:hover {
+        background-color: #f0f0f0;
+      }
+
+      .kawaii-border,
+      .menu-bar {
+        transition: transform 0.3s ease-out;
+      }
+
+      body {
+        font-size: 16px;
+      }
+
+      @media (max-width: 1200px) {
+        body {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 900px) {
+        body {
+          font-size: 14px;
+        }
+      }
+
+      .ripple {
+        position: fixed;
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        background-color: rgba(255, 255, 255, 0.7);
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      @keyframes ripple {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+
+      .menu-bar {
+        position: fixed;
+        top: 10px;
+        left: 0px;
+        right: 0;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         background-color: transparent;
-        z-index: 1000;
+        z-index: 1002;
         opacity: 0;
         transition: opacity 1s ease-in;
+        font-family: "Jacquarda Bastarda 9 Charted", cursive;
+      }
+
+      .menu-item {
+        position: relative;
+        margin: 0 10px;
+        cursor: pointer;
+        overflow: visible;
+        color: rgb(255, 128, 240);
+        font-family: "Jacquarda Bastarda 9 Charted", cursive;
       }
 
       .fade-in {
@@ -38,17 +242,6 @@
 
       .fade-out {
         opacity: 0;
-      }
-
-      .menu-item {
-        position: relative;
-        margin: 0 10px;
-        cursor: pointer;
-      }
-
-      .menu-item.active {
-        color: #0000ee; /* link blue */
-        text-decoration: underline;
       }
 
       #content {
@@ -65,62 +258,137 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 400px;
-        height: 75vh;
-        overflow-y: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        align-items: center;
-        padding: 20px;
+        width: min(80vw, 1000px);
+        height: min(80vh, 810px);
+        overflow: hidden;
+        padding-top: 60px;
+        box-sizing: border-box;
         z-index: 1000;
       }
 
-      .content-section::-webkit-scrollbar {
-        display: none;
+      .content-section.active {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
       }
 
-      .content-section.active {
-        display: block;
+      #digital .digital-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .content-section-inner {
+        position: absolute;
+        top: 0px;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      @media (min-aspect-ratio: 1000/810) {
+        .content-section {
+          height: 81vh;
+          padding-bottom: 0;
+          width: calc(81vh * (1000 / 810));
+        }
       }
 
       .border-container {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 1200px; /* Fixed width */
-        height: 850px; /* Fixed height */
-        border: 2px solid black;
+        top: 10vh;
+        left: 5vw;
+        width: 90vw;
+        height: 85vh;
         pointer-events: none;
         z-index: 1001;
         border-style: hidden;
       }
 
-      .home-content {
-        text-align: center;
-        color: rgba(
-          255,
-          94,
-          164,
-          1
-        ); /* Solid color, we'll apply opacity to child elements */
+      .kawaii-blur {
+        position: absolute;
+        top: -20px;
+        left: -20px;
+        right: -20px;
+        bottom: -20px;
+        filter: blur(8px);
+        opacity: 0.5;
+        z-index: -1;
+        pointer-events: none;
       }
-      .home-content .typed {
-        color: rgba(255, 94, 164, 0.8);
-        text-shadow: 0 0 10px rgba(255, 253, 228, 0.5);
+
+      .kawaii-blur span {
+        position: absolute;
+        color: rgba(0, 0, 0, 0.3);
+      }
+
+      .kawaii-border {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .kawaii-border span {
+        position: absolute;
+        transition: color 0.5s ease, transform 0.3s ease-out;
+      }
+
+      .home-content {
+        color: rgba(255, 94, 164, 1);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        height: 90%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .inner-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: rgba(255, 94, 164, 1);
+      }
+
+      .typewriter-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 1s ease-in-out;
+      }
+
+      @media (min-width: 600px) {
+        .justified-paragraph {
+          max-width: 80%;
+        }
       }
 
       .typewriter-line {
         visibility: hidden;
         overflow: hidden;
-        white-space: nowrap;
+        white-space: pre-wrap;
         margin: 0;
         display: inline-block;
-        opacity: 0.8; /* Apply opacity here */
-        text-shadow: 0 0 10px rgba(255, 253, 228, 0.5); /* Creamy white glow */
+        opacity: 0.8;
+        text-shadow: 0 0 10px rgba(255, 253, 228, 0.5);
+        font-size: 3vmin;
+        line-height: 1.5;
       }
 
-      .typewriter-line::after {
+      .typewriter-line.completed::after {
         content: "✧";
         opacity: 0.8;
         animation: blink 0.7s infinite;
@@ -128,8 +396,8 @@
         text-shadow: inherit;
       }
 
-      .typewriter-line.completed {
-        opacity: 0.8;
+      .home-content .typed {
+        color: rgba(255, 94, 164, 0.8);
         text-shadow: 0 0 10px rgba(255, 253, 228, 0.5);
       }
 
@@ -143,94 +411,6 @@
         }
       }
 
-      .typewriter-container {
-        transition: opacity 1s ease-in-out;
-      }
-
-      .home-image {
-        width: 400px;
-        height: 200px;
-        margin-top: 20px;
-        object-fit: contain;
-        border-radius: 20px;
-        border-style: hidden;
-        justify-content: center;
-      }
-
-      @import url("https://fonts.google.com/specimen/Texturina?preview.text=emery&query=texturina&classification=Display&vfonly=true");
-
-      .stylized-mre {
-        font-size: 12pt;
-        font-weight: 700;
-        display: inline-block;
-        position: relative;
-        color: #000;
-      }
-
-      .stylized-mre::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 8px;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.8),
-          transparent
-        );
-        animation: shine 2s linear infinite;
-      }
-
-      @keyframes shine {
-        0% {
-          left: -100%;
-        }
-        100% {
-          left: 100%;
-        }
-      }
-
-      .print-collage-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-      }
-
-      .collage-image {
-        width: 100%;
-        max-width: 450px;
-        height: auto;
-        object-fit: cover;
-        animation: collageShake 1s infinite ease-in-out;
-        opacity: 0.8;
-      }
-
-      .collage-image:hover {
-        opacity: 0.6;
-        animation: none;
-      }
-
-      @keyframes collageShake {
-        0% {
-          transform: translate(0, 0) rotate(0deg);
-        }
-        25% {
-          transform: translate(0.3px, 0.3px) rotate(0.1deg);
-        }
-        50% {
-          transform: translate(0, -0.3px) rotate(-0.1deg);
-        }
-        75% {
-          transform: translate(-0.3px, 0) rotate(0.1deg);
-        }
-        100% {
-          transform: translate(0, 0) rotate(0deg);
-        }
-      }
-
       #scene-container {
         position: fixed;
         top: 0;
@@ -240,30 +420,6 @@
         z-index: -1;
       }
 
-      .justified-paragraph {
-        text-align: center;
-        max-width: 100%;
-        margin: 0 auto;
-      }
-
-      .justified-paragraph span {
-        display: inline-block;
-        width: 350px;
-        text-align: justify;
-        text-align-last: justify;
-      }
-
-      .justified-paragraph span.centered {
-        text-align: center;
-        text-align-last: center;
-      }
-
-      @media (min-width: 600px) {
-        .justified-paragraph {
-          max-width: 80%;
-        }
-      }
-
       .digital-content {
         text-align: center;
       }
@@ -271,82 +427,101 @@
       .contact-content {
         text-align: center;
       }
+
       .aura-container {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-
-        opacity: 0.75; /* Adjust for desired intensity */
+        opacity: 0.75;
       }
     </style>
   </head>
   <body>
     <div id="scene-container"></div>
     <div id="aura-container" class="aura-container"></div>
-    <div class="border-container"></div>
-    <nav class="menu-bar">
-      <div class="menu-item active" data-section="home">home</div>
-      <div class="menu-item" data-section="about">about</div>
-      <div class="menu-item" data-section="print">print</div>
-      <div class="menu-item" data-section="digital">digital</div>
-      <div class="menu-item" data-section="contact">contact</div>
-    </nav>
+    <header class="fixed-header">
+      <nav class="menu-bar">
+        <div class="menu-item active" data-section="home">home</div>
+        <div class="menu-item" data-section="about">about</div>
+        <div class="menu-item" data-section="audio">audio</div>
+        <div class="menu-item" data-section="visual">visual</div>
+      </nav>
+    </header>
+    <div class="border-container">
+      <div class="kawaii-blur"></div>
+      <div class="kawaii-border"></div>
+    </div>
     <div id="content">
       <section id="home" class="content-section active">
         <div class="home-content">
-          <div class="typewriter-container">
-            <p>
-              <span class="typewriter-line"></span><br />
-              <span class="typewriter-line"></span>
-            </p>
+          <div class="inner-container">
+            <div class="typewriter-container">
+              <p class="justified-paragraph">
+                <span class="typewriter-line"></span>
+              </p>
+            </div>
           </div>
         </div>
       </section>
       <section id="about" class="content-section">
-        <div class="about-content">
-          <p class="justified-paragraph">
-            <span
-              ><span class="stylized-mre">willow wisp</span> is a
-              filipino-american artist</span
-            ><br />
-            <span>capturing the tender moments that linger</span><br />
-            <span>between presence and passage</span><br />
-            <span>through their work in audio, video, & photo.</span><br />
-            <span>they find charm and depth in life's flux,</span><br />
-            <span>bridging digital realms and physical experiences</span><br />
-            <span>to create pieces that resonate</span><br />
-            <span>with quiet introspection.</span><br /><br />
-            <span>based in brooklyn, ny</span><br /><br /><br />
-            <span class="centered">✧</span>
-          </p>
-          <img src="blueflame.gif" alt="me" class="home-image" />
-        </div>
+        <div class="about-content"></div>
       </section>
-      <section id="print" class="content-section">
-        <div class="print-content"></div>
-      </section>
-      <section id="print-collage" class="content-section">
-        <img src="image1.jpg" alt="Collage 1" class="collage-image" />
-        <img src="image2.jpg" alt="Collage 2" class="collage-image" />
-        <img src="image3.jpg" alt="Collage 3" class="collage-image" />
-        <img src="image4.png" alt="Collage 4" class="collage-image" />
-      </section>
-      <section id="digital" class="content-section">
-        <div class="digital-content">
-          <p>Digital content goes here.</p>
-        </div>
-      </section>
-      <section id="contact" class="content-section">
-        <div class="contact-content">
-          <p>you may reach me at<br /></p>
-          <p class="justified-paragraph">
-            <span>willow (dot) wisp @ proton (dot) me</span><br /><span
-              >@ sticky _ ipad</span
-            ><br />
-          </p>
-          <p>or begin your message below</p>
+      <section id="audio" class="content-section">
+        <div class="ipod-container">
+          <div class="audio-player">
+            <button class="button song-list-button" id="songListBtn"></button>
+            <button class="button play-button" id="playPauseBtn"></button>
+            <button class="button rewind-button" id="rewindBtn"></button>
+            <button class="button forward-button" id="forwardBtn"></button>
+            <div class="player-content">
+              <img id="albumArt" class="album-art" alt="Album Art" />
+              <div id="songTitle" class="song-title"></div>
+              <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+              </div>
+            </div>
+            <div class="time-display">
+              <span id="currentTime">0:00</span>
+              <span id="duration">0:00</span>
+            </div>
+            <audio id="audio" src="feverfew with vocals.m4a"></audio>
+            <div class="song-list" id="songList">
+              <ul>
+                <li
+                  data-src="feverfew with vocals.m4a"
+                  data-img="IMG_5936.jpeg"
+                >
+                  feverfew
+                </li>
+                <li
+                  data-src="path/to/song2.mp3"
+                  data-img="path/to/sea-salt-image.jpg"
+                >
+                  sea salt
+                </li>
+                <li
+                  data-src="path/to/song3.mp3"
+                  data-img="path/to/dark-room-image.jpg"
+                >
+                  a dark room
+                </li>
+                <li
+                  data-src="path/to/song4.mp3"
+                  data-img="path/to/bbtone-image.jpg"
+                >
+                  bbtone
+                </li>
+                <li
+                  data-src="path/to/song5.mp3"
+                  data-img="path/to/bruise-image.jpg"
+                >
+                  the bruise on my knee
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -385,6 +560,33 @@
           masterGain = audioContext.createGain();
           masterGain.connect(audioContext.destination);
         }
+      }
+
+      function adjustContentSectionSize() {
+        const contentSections = document.querySelectorAll(".content-section");
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const menuHeight = document.querySelector(".menu-bar").offsetHeight;
+        const aspectRatio = 1000 / 810;
+
+        contentSections.forEach((section) => {
+          const maxWidth = Math.min(viewportWidth * 0.8, 1000);
+          const maxHeight = Math.min((viewportHeight - menuHeight) * 0.8, 810);
+
+          if (maxWidth / maxHeight > aspectRatio) {
+            // Height is the limiting factor
+            const height = maxHeight;
+            const width = height * aspectRatio;
+            section.style.width = `${width}px`;
+            section.style.height = `${height}px`;
+          } else {
+            // Width is the limiting factor
+            const width = maxWidth;
+            const height = width / aspectRatio;
+            section.style.width = `${width}px`;
+            section.style.height = `${height}px`;
+          }
+        });
       }
 
       function playChord() {
@@ -461,6 +663,8 @@
           { r: 255, g: 253, b: 208 }, // Soft yellow
         ];
 
+        const outerColor = "rgba(240, 255, 240, 0.5)"; // Creamy, slightly minty white with some transparency
+
         function lerp(a, b, t) {
           return a + (b - a) * t;
         }
@@ -487,6 +691,10 @@
               radius
             );
 
+            // Add the fixed outer color
+            gradient.addColorStop(1, outerColor);
+
+            // Add the changing inner colors
             for (let i = 0; i < colors.length; i++) {
               const t = (time / 10 + i / colors.length) % 1; // Slowed down color transition
               const nextIndex = (i + 1) % colors.length;
@@ -495,7 +703,7 @@
               const b = Math.floor(lerp(colors[i].b, colors[nextIndex].b, t));
               const alpha = (1 - (i / colors.length) * 0.6) * (1 - layer * 0.2);
               gradient.addColorStop(
-                i / (colors.length - 1),
+                i / (colors.length + 1), // Adjust the stop to make room for the outer color
                 `rgba(${r}, ${g}, ${b}, ${alpha})`
               );
             }
@@ -534,6 +742,87 @@
         animate();
       }
 
+      function createRipple(event) {
+        const ripple = document.createElement("div");
+        ripple.classList.add("ripple");
+        document.body.appendChild(ripple);
+
+        const size = 100; // Fixed size for the ripple
+
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${event.clientX - size / 2}px`;
+        ripple.style.top = `${event.clientY - size / 2}px`;
+
+        ripple.addEventListener("animationend", () => {
+          ripple.remove();
+        });
+      }
+
+      let lastMouseX = 0;
+      let lastMouseY = 0;
+      let tiltX = 0;
+      let tiltY = 0;
+      function animateElements(event) {
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        // Calculate the mouse movement
+        const deltaX = mouseX - lastMouseX;
+        const deltaY = mouseY - lastMouseY;
+
+        // Update the tilt (inverted and scaled down for subtle effect)
+        tiltX -= deltaX * 0.01;
+        tiltY -= deltaY * 0.01;
+
+        // Clamp the tilt values
+        tiltX = Math.max(-5, Math.min(5, tiltX));
+        tiltY = Math.max(-5, Math.min(5, tiltY));
+
+        // Apply the tilt with a subtle shake
+        const shake = (Math.random() - 0.5) * 0.5;
+        const borderTransform = `translate(${tiltX + shake}px, ${
+          tiltY + shake
+        }px)`;
+        const menuTransform = `translate(${tiltX * 0.5 + shake}px, ${
+          tiltY * 0.5 + shake
+        }px)`;
+
+        const kawaiiElement = document.querySelector(".kawaii-border");
+        const kawaiiBlur = document.querySelector(".kawaii-blur");
+        const menuBar = document.querySelector(".menu-bar");
+
+        if (kawaiiElement) kawaiiElement.style.transform = borderTransform;
+        if (kawaiiBlur) kawaiiBlur.style.transform = borderTransform;
+        if (menuBar) menuBar.style.transform = menuTransform;
+
+        // Update last mouse position
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+
+        // Apply decay to the tilt
+        tiltX *= 0.95;
+        tiltY *= 0.95;
+      }
+
+      // Add event listener for mouse movement
+      document.addEventListener("mousemove", animateElements);
+
+      // Initial call to set up the animation
+      animateElements({
+        clientX: window.innerWidth / 2,
+        clientY: window.innerHeight / 2,
+      });
+
+      function handlePageClick(event) {
+        if (!event.target.closest(".menu-item, .submenu-item")) {
+          console.log(
+            "Click detected, creating ripple and playing next movement"
+          );
+
+          createRipple(event);
+        }
+      }
+
       function playNote(frequency, startTime, duration, stereoPanner, delay) {
         if (!audioContext) initAudio();
         const oscillator = audioContext.createOscillator();
@@ -565,7 +854,7 @@
       }
       // Three.js setup
       let scene, camera, renderer;
-      let centralSphere, leftSphere, rightSphere;
+      let centralSphere;
       let mouseX = 0,
         mouseY = 0;
 
@@ -601,6 +890,7 @@
           size: 0.03,
           vertexColors: true,
           transparent: true,
+          opacity: 0,
           sizeAttenuation: true,
         });
 
@@ -645,6 +935,32 @@
         renderer.render(scene, camera);
       }
 
+      function addHoverEffectToText() {
+        const contentSections = document.querySelectorAll(".content-section");
+
+        contentSections.forEach((section) => {
+          const textNodes = Array.from(section.childNodes).filter(
+            (node) =>
+              node.nodeType === Node.TEXT_NODE &&
+              node.textContent.trim().length > 0
+          );
+
+          textNodes.forEach((textNode) => {
+            const spanContainer = document.createElement("span");
+            const text = textNode.textContent;
+
+            for (let i = 0; i < text.length; i++) {
+              const letterSpan = document.createElement("span");
+              letterSpan.textContent = text[i];
+              letterSpan.className = "hover-effect";
+              spanContainer.appendChild(letterSpan);
+            }
+
+            textNode.parentNode.replaceChild(spanContainer, textNode);
+          });
+        });
+      }
+
       function updateCentralSpherePosition() {
         if (centralSphere) {
           centralSphere.position.x = mouseX * 0.05;
@@ -672,7 +988,11 @@
 
       function setupEventListeners() {
         window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("resize", onWindowResize);
+        window.addEventListener("resize", () => {
+          onWindowResize();
+          adjustContentSectionSize();
+          generateKawaiiBorder();
+        });
         const menuBar = document.querySelector(".menu-bar");
         menuBar.addEventListener("click", handleMenuClick);
       }
@@ -681,53 +1001,107 @@
           ","
         );
 
+      function getRandomSphereColor() {
+        if (!centralSphere) return `rgb(255, 255, 255)`;
+        const colors = centralSphere.geometry.attributes.color.array;
+        const index = Math.floor((Math.random() * colors.length) / 3) * 3;
+        const r = Math.floor(colors[index] * 255);
+        const g = Math.floor(colors[index + 1] * 255);
+        const b = Math.floor(colors[index + 2] * 255);
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
       function generateKawaiiBorder() {
         const borderContainer = document.querySelector(".border-container");
         const kawaiiElement = document.createElement("div");
         kawaiiElement.className = "kawaii-border";
+        const blurElement = document.createElement("div");
+        blurElement.className = "kawaii-blur";
         borderContainer.innerHTML = ""; // Clear existing content
+        borderContainer.appendChild(blurElement);
         borderContainer.appendChild(kawaiiElement);
 
-        const containerWidth = 600; // Fixed width
-        const containerHeight = 600; // Fixed height
-        const charSize = 16; // Adjust this value to change the density of characters
+        const containerRect = borderContainer.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        const containerHeight = containerRect.height;
+        const charSize = Math.min(containerWidth, containerHeight) * 0.02;
 
         let borderChars = "";
+        let blurChars = "";
 
-        // Top and bottom rows
-        for (let i = 0; i < containerWidth; i += charSize) {
-          borderChars += `<span style="position:absolute;left:${i}px;top:0">${getRandomChar()}</span>`;
-          borderChars += `<span style="position:absolute;left:${i}px;bottom:0">${getRandomChar()}</span>`;
+        // Generate characters for both kawaii-border and kawaii-blur
+        for (let i = 0; i < containerWidth + 40; i += charSize) {
+          const char = getRandomChar();
+          const color = getRandomSphereColor();
+          const blurColor = `rgba(${parseInt(
+            color.slice(4, -1).split(",")[0]
+          )}, ${parseInt(color.slice(4, -1).split(",")[1])}, ${parseInt(
+            color.slice(4, -1).split(",")[2]
+          )}, 0.3)`;
+
+          if (i >= 20 && i <= containerWidth + 20) {
+            borderChars += `<span style="left:${
+              i - 20
+            }px;top:0;color:${color};font-size:${charSize}px;">${char}</span>`;
+            borderChars += `<span style="left:${
+              i - 20
+            }px;bottom:0;color:${color};font-size:${charSize}px;">${char}</span>`;
+          }
+          blurChars += `<span style="left:${
+            i - 20
+          }px;top:-20px;color:${blurColor};font-size:${charSize}px;">${char}</span>`;
+          blurChars += `<span style="left:${
+            i - 20
+          }px;bottom:-20px;color:${blurColor};font-size:${charSize}px;">${char}</span>`;
         }
 
-        // Left and right columns
-        for (let i = charSize; i < containerHeight - charSize; i += charSize) {
-          borderChars += `<span style="position:absolute;left:0;top:${i}px">${getRandomChar()}</span>`;
-          borderChars += `<span style="position:absolute;right:0;top:${i}px">${getRandomChar()}</span>`;
+        for (let i = charSize; i < containerHeight + 40; i += charSize) {
+          const char = getRandomChar();
+          const color = getRandomSphereColor();
+          const blurColor = `rgba(${parseInt(
+            color.slice(4, -1).split(",")[0]
+          )}, ${parseInt(color.slice(4, -1).split(",")[1])}, ${parseInt(
+            color.slice(4, -1).split(",")[2]
+          )}, 0.3)`;
+
+          if (i >= 20 && i <= containerHeight + 20) {
+            borderChars += `<span style="left:0;top:${
+              i - 20
+            }px;color:${color};font-size:${charSize}px;">${char}</span>`;
+            borderChars += `<span style="right:0;top:${
+              i - 20
+            }px;color:${color};font-size:${charSize}px;">${char}</span>`;
+          }
+          blurChars += `<span style="left:-20px;top:${
+            i - 20
+          }px;color:${blurColor};font-size:${charSize}px;">${char}</span>`;
+          blurChars += `<span style="right:-20px;top:${
+            i - 20
+          }px;color:${blurColor};font-size:${charSize}px;">${char}</span>`;
         }
 
         kawaiiElement.innerHTML = borderChars;
-      }
+        blurElement.innerHTML = blurChars;
 
+        // Add this at the end of the function
+        setInterval(twinkleBorderChars, 500); // Change characters every 500ms
+      }
       function getRandomChar() {
         return kawaiiBorderChars[
           Math.floor(Math.random() * kawaiiBorderChars.length)
         ];
       }
 
-      // Generate border on load
       window.addEventListener("load", generateKawaiiBorder);
-
-      // Optional: Regenerate border every few seconds for a dynamic effect
-      setInterval(generateKawaiiBorder, 5000);
+      window.addEventListener("resize", generateKawaiiBorder);
 
       function handleMenuClick(e) {
         if (!audioContext) initAudio();
-        const target = e.target.closest(".menu-item, .submenu-item");
+        const target = e.target.closest(".menu-item");
         if (!target) return;
 
         e.preventDefault();
-        const sectionId = target.dataset.section.replace("/", "-");
+        const sectionId = target.dataset.section;
         navigateTo(sectionId);
 
         // Play both a note and a chord when a menu item is clicked
@@ -755,6 +1129,14 @@
         playChord();
       }
 
+      function applyMenuShake() {
+        const menuItems = document.querySelectorAll(".menu-item");
+        menuItems.forEach((item) => {
+          applyShake(item, 0.5);
+        });
+      }
+
+      // Make sure this function is also defined
       function applyShake(element, intensity = 0.5) {
         let x = 0;
         let y = 0;
@@ -773,15 +1155,18 @@
         updateShake();
       }
 
-      // Navigation code
-      const menuItems = document.querySelectorAll(".menu-item, .submenu-item");
+      const images = ["image1.jpg", "image2.jpg", "image3.jpg", "image4.jpg"];
+      let currentImageIndex = 0;
+
+      const menuItems = document.querySelectorAll(".menu-item");
       const contentSections = document.querySelectorAll(".content-section");
-
       function navigateTo(sectionId) {
-        if (sectionId === "print") sectionId = "print-collage";
-
+        console.log("Navigating to section:", sectionId);
         const targetSection = document.getElementById(sectionId);
-        if (!targetSection) return;
+        if (!targetSection) {
+          console.error("Target section not found:", sectionId);
+          return;
+        }
 
         const isLeavingHome = document
           .getElementById("home")
@@ -800,12 +1185,7 @@
         document
           .querySelectorAll(".menu-item, .submenu-item")
           .forEach((item) => {
-            item.classList.toggle(
-              "active",
-              item.dataset.section === sectionId ||
-                (item.dataset.section === "print" &&
-                  (sectionId === "print-collage" || sectionId === "print-zine"))
-            );
+            item.classList.toggle("active", item.dataset.section === sectionId);
           });
 
         // Handle sphere visibility
@@ -828,42 +1208,48 @@
       function showSphere() {
         if (centralSphere) {
           centralSphere.visible = true;
+          const sphereMaterial = centralSphere.material;
+          sphereMaterial.opacity = 0;
+          const fadeDuration = 1000; // 1 second
+          const startTime = performance.now();
+
+          function fadeIn(currentTime) {
+            const elapsedTime = currentTime - startTime;
+            const progress = Math.min(elapsedTime / fadeDuration, 1);
+            sphereMaterial.opacity = progress;
+
+            if (progress < 1) {
+              requestAnimationFrame(fadeIn);
+            }
+          }
+
+          requestAnimationFrame(fadeIn);
         }
       }
 
       function hideSphere() {
         if (centralSphere) {
           centralSphere.visible = false;
+          centralSphere.material.opacity = 0;
         }
       }
-
       function applyCollageShake() {
-        const collageImages = document.querySelectorAll(".collage-image");
-        collageImages.forEach((image) => {
-          applyShake(image, 0.3);
+        const printItems = document.querySelectorAll(".print-item");
+        printItems.forEach((item) => {
+          applyShake(item, 0.3);
 
-          // Add hover effect
-          image.addEventListener("mouseenter", () => {
-            image.style.opacity = "0.8";
-            image.style.transform = "none";
+          item.addEventListener("mouseenter", () => {
+            item.style.animation = "none";
           });
 
-          image.addEventListener("mouseleave", () => {
-            image.style.opacity = "1";
-            applyShake(image, 0.3);
+          item.addEventListener("mouseleave", () => {
+            applyShake(item, 0.3);
           });
         });
       }
       function handleInitialLoad() {
         const path = window.location.pathname.slice(1) || "home";
-        const sectionId = path.replace("/", "-");
-        navigateTo(sectionId);
-      }
-      function applyMenuShake() {
-        const menuItems = document.querySelectorAll(".menu-item");
-        menuItems.forEach((item) => {
-          applyShake(item, 0.5);
-        });
+        navigateTo(path);
       }
 
       let homeAnimationComplete = false;
@@ -887,39 +1273,228 @@
         });
       }
 
+      function initAudioPlayer() {
+        const audio = document.getElementById("audio");
+        const playPauseBtn = document.getElementById("playPauseBtn");
+        const rewindBtn = document.getElementById("rewindBtn");
+        const forwardBtn = document.getElementById("forwardBtn");
+        const progressBar = document.getElementById("progressBar");
+        const currentTimeDisplay = document.getElementById("currentTime");
+        const durationDisplay = document.getElementById("duration");
+        const songTitleElement = document.getElementById("songTitle");
+        let isRewinding = false;
+        let isForwarding = false;
+
+        const songListBtn = document.getElementById("songListBtn");
+        const songList = document.getElementById("songList");
+
+        songListBtn.addEventListener("click", toggleSongList);
+        songList.querySelectorAll("li").forEach((item) => {
+          item.addEventListener("click", () => selectSong(item));
+        });
+
+        playPauseBtn.addEventListener("click", togglePlayPause);
+        rewindBtn.addEventListener("mousedown", startRewind);
+        rewindBtn.addEventListener("mouseup", stopRewind);
+        rewindBtn.addEventListener("mouseleave", stopRewind);
+        forwardBtn.addEventListener("mousedown", startForward);
+        forwardBtn.addEventListener("mouseup", stopForward);
+        forwardBtn.addEventListener("mouseleave", stopForward);
+        audio.addEventListener("timeupdate", updateProgress);
+        audio.addEventListener("loadedmetadata", setDuration);
+
+        function togglePlayPause() {
+          if (audio.paused) {
+            audio.play();
+            playPauseBtn.classList.add("playing");
+          } else {
+            audio.pause();
+            playPauseBtn.classList.remove("playing");
+          }
+        }
+
+        function toggleSongList() {
+          if (songList.style.display === "block") {
+            songList.style.display = "none";
+            document.querySelector(".player-content").style.display = "block";
+            document.querySelector(".time-display").style.display = "flex";
+          } else {
+            songList.style.display = "block";
+            document.querySelector(".player-content").style.display = "none";
+            document.querySelector(".time-display").style.display = "none";
+          }
+        }
+
+        function selectSong(item) {
+          audio.src = item.dataset.src;
+          document.getElementById("albumArt").src = item.dataset.img;
+          songTitleElement.textContent = item.textContent.trim();
+          audio.play();
+          playPauseBtn.classList.add("playing");
+          toggleSongList();
+        }
+
+        function startRewind() {
+          isRewinding = true;
+          rewind();
+        }
+
+        function stopRewind() {
+          isRewinding = false;
+        }
+
+        function startForward() {
+          isForwarding = true;
+          forward();
+        }
+
+        function stopForward() {
+          isForwarding = false;
+        }
+
+        function rewind() {
+          if (isRewinding) {
+            audio.currentTime = Math.max(audio.currentTime - 1, 0);
+            updateProgress();
+            requestAnimationFrame(rewind);
+          }
+        }
+
+        function forward() {
+          if (isForwarding) {
+            audio.currentTime = Math.min(audio.currentTime + 1, audio.duration);
+            updateProgress();
+            requestAnimationFrame(forward);
+          }
+        }
+
+        function updateProgress() {
+          const progress = (audio.currentTime / audio.duration) * 100;
+          progressBar.style.width = `${progress}%`;
+          currentTimeDisplay.textContent = formatTime(audio.currentTime);
+        }
+
+        function setDuration() {
+          durationDisplay.textContent = formatTime(audio.duration);
+        }
+
+        function formatTime(time) {
+          const minutes = Math.floor(time / 60);
+          const seconds = Math.floor(time % 60)
+            .toString()
+            .padStart(2, "0");
+          return `${minutes}:${seconds}`;
+        }
+
+        function setInitialAlbumArt() {
+          const firstSong = songList.querySelector("li");
+          if (firstSong) {
+            document.getElementById("albumArt").src = firstSong.dataset.img;
+            songTitleElement.textContent = firstSong.textContent.trim();
+          }
+        }
+
+        setInitialAlbumArt();
+      }
+
+      // Call this function when the DOM is loaded
+      document.addEventListener("DOMContentLoaded", initAudioPlayer);
+      function applyMenuShake() {
+        const menuItems = document.querySelectorAll(".menu-item");
+        menuItems.forEach((item) => {
+          applyShake(item, 0.5);
+        });
+      }
+
+      function applyShake(element, intensity = 0.5) {
+        let x = 0;
+        let y = 0;
+
+        function updateShake() {
+          x += (Math.random() - 0.5) * intensity;
+          y += (Math.random() - 0.5) * intensity;
+
+          x *= 0.9;
+          y *= 0.9;
+
+          element.style.transform = `translate(${x}px, ${y}px)`;
+          requestAnimationFrame(updateShake);
+        }
+
+        updateShake();
+      }
+      // Add this function to randomly change border characters
+      function twinkleBorderChars() {
+        const borderSpans = document.querySelectorAll(".kawaii-border span");
+        const blurSpans = document.querySelectorAll(".kawaii-blur span");
+
+        borderSpans.forEach((span) => {
+          if (Math.random() < 0.1) {
+            // 10% chance to change each character
+            span.textContent = getRandomChar();
+          }
+        });
+
+        blurSpans.forEach((span) => {
+          if (Math.random() < 0.1) {
+            // 10% chance to change each character
+            span.textContent = getRandomChar();
+          }
+        });
+      }
+
+      // Add this function to randomly change border characters
+      function twinkleBorderChars() {
+        const borderSpans = document.querySelectorAll(".kawaii-border span");
+        const blurSpans = document.querySelectorAll(".kawaii-blur span");
+
+        borderSpans.forEach((span) => {
+          if (Math.random() < 0.1) {
+            // 10% chance to change each character
+            span.textContent = getRandomChar();
+          }
+        });
+
+        blurSpans.forEach((span) => {
+          if (Math.random() < 0.1) {
+            // 10% chance to change each character
+            span.textContent = getRandomChar();
+          }
+        });
+      }
+
       async function animateTypewriter() {
         if (homeAnimationComplete) return;
 
-        const lines = document.querySelectorAll(".typewriter-line");
+        const line = document.querySelector(".typewriter-line");
         const menuBar = document.querySelector(".menu-bar");
         const typewriterContainer = document.querySelector(
           ".typewriter-container"
         );
 
-        // Ensure menu is hidden initially
+        // Ensure menu and sphere are hidden initially
         menuBar.classList.remove("fade-in");
+        hideSphere();
 
-        await typeWriter(
-          lines[0],
-          "close your eyes and take my hand. . .",
-          3000
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1-second pause
-        await typeWriter(lines[1], "step into my garden ✿✿✿", 3000);
+        const text =
+          "close your\neyes and\ntake my\nhand. . .\nstep into\nmy garden";
+        await typeWriter(line, text, 4000);
 
         // Fade out typewriter text
         typewriterContainer.style.transition = "opacity 1s ease-out";
         typewriterContainer.style.opacity = "0";
 
-        // Wait for typewriter fade-out to complete, then wait an additional 1 second
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Wait for typewriter fade-out to complete
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Fade in menu
+        // Fade in menu and sphere simultaneously
         menuBar.classList.add("fade-in");
+        showSphere();
 
         homeAnimationComplete = true;
       }
-      // Modify the existing event listener
+
+      // Modify your existing DOMContentLoaded event listener
       document.addEventListener("DOMContentLoaded", () => {
         createAura("aura-container");
         initAudio();
@@ -928,8 +1503,22 @@
         applyMenuShake();
         applyCollageShake();
         animateTypewriter();
-        createKawaiiBorder();
+        generateKawaiiBorder();
+        addHoverEffectToText();
+        initAudioPlayer();
       });
+
+      // Modify your existing window resize event listener
+      window.addEventListener("resize", () => {
+        onWindowResize();
+        adjustContentSectionSize();
+        generateKawaiiBorder();
+      });
+
+      // Add mouse movement listener for animation
+      document.addEventListener("mousemove", animateElements);
+
+      document.addEventListener("click", handlePageClick);
 
       console.log("All scripts loaded");
 
